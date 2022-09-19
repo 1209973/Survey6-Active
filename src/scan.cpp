@@ -22,7 +22,11 @@ vector<pair<string,string>> scan_ip_list(vector<string> ip_list){
     for(auto ip:ip_list){
         bool success = ping(ip);
         results.push_back(make_pair(ip,success?"reachable":"unreachable"));
-
+        flock(fd, LOCK_EX);
+        string result = (ip+","+(success?"reachable":"unreachable")+"\n");
+        write(fd,result.c_str(), strlen(result.c_str()));
+        cout <<ip << " "<<(success?"\033[0;32m reachable":"\033[0;31m unreachable")<<"\033[0m\n";
+        flock(fd, LOCK_UN);
     }
 
     return results;
@@ -33,8 +37,9 @@ vector<pair<string,string>> scan_ip_list(vector<string> ip_list){
 void scan(string network, string output_path)
 {
     cout << "Scanning networking rage " << network << endl;
-    ofstream results(output_path+"result.csv");
-    results << "IP address"<<"," <<"results"<<"\n";
+    fd = open((output_path+"result.csv").c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRWXU | S_IRWXG);
+    string headers= "IP address,results\n";
+    write(fd,headers.c_str(), strlen(headers.c_str()));
     ip::address_v6_range hosts= generate_ip_addresses(network);
     vector<string> ip_list;
     for(auto addres:hosts){
@@ -66,15 +71,6 @@ else{
         result_vec.push_back(futures[i].get());
     }
 
-
-    for( auto vec : result_vec){
-        for( pair<string,string> result_pair: vec){
-            cout << result_pair.first << " "<<(result_pair.second=="reachable"?"\033[0;32m reachable":"\033[0;31m unreachable")<<"\033[0m\n";
-            results << result_pair.first << ", "<<result_pair.second<<"\n";
-        }
-    }
-
-    results.close();
     cout << "\033[0;32mScan completed" << endl;
 
 }

@@ -3,10 +3,14 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <sys/file.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 
 using namespace boost::asio;
 using namespace std;
-
+static int fd;
 
 #ifndef SCAN_H
 #define SCAN_H
